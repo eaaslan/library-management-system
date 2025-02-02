@@ -1,0 +1,40 @@
+﻿@model WebApplication1.Models.Book
+
+@{
+    ViewData["Title"] = "Update Book";
+}
+
+<h2>Update Book</h2>
+
+<form asp-controller="Book" asp-action="Update"  method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="form-group">
+        <label asp-for="Title">Title</label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Category">Category</label>
+        <input asp-for="Category" class="form-control" />
+        <span asp-validation-for="Category" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ImageUrl">Image URL</label>
+        <input asp-for="ImageUrl" class="form-control" />
+        <span asp-validation-for="ImageUrl" class="text-danger"></span>
+    </div>
+
+    <div class="form-group form-check">
+        <input asp-for="Available" class="form-check-input" />
+        <label class="form-check-label" asp-for="Available">Available</label>
+    </div>
+
+    <button type="submit" class="btn btn-success">Update Book</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,11 +1,24 @@
-﻿namespace WebApplication1.Models.DTOs
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace WebApplication1.Models.DTOs
 {
     public class RegisterDto
     {
-        public string UserName { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
 
+        [Required]
+        [StringLength(100, MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = string.Empty;
 
+        [Required]
+        [Display(Name = "First Name")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required]
+        [Display(Name = "Last Name")]
+        public string LastName { get; set; } = string.Empty;
     }
 }

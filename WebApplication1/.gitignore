@@ -1,0 +1,55 @@
+## .NET Core
+bin/
+obj/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.dbmdl
+*.jfm
+*.pfx
+*.publishsettings
+
+## Visual Studio
+.vs/
+*.ncrunch*
+*.ReSharper*
+_ReSharper*/
+*.DotSettings.user
+*.dotCover
+
+## Visual Studio Code
+.vscode/
+.history/
+
+## Rider
+.idea/
+
+## User-specific files
+*.rsuser
+*.sln.iml
+
+## Docker
+.docker/
+
+## Logs
+logs/
+*.log
+
+## Environment files
+*.env
+appsettings.Development.json
+appsettings.Production.json
+
+## Database
+*.db
+*.sqlite3
+
+## OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db 

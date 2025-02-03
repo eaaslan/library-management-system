@@ -12,8 +12,8 @@ using WebApplication1.Data;
 namespace WebApplication1.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250202132701_fk-fixed")]
-    partial class fkfixed
+    [Migration("20250203204045_UpdateBookModel")]
+    partial class UpdateBookModel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -176,6 +176,16 @@ namespace WebApplication1.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
 
@@ -223,38 +233,80 @@ namespace WebApplication1.Migrations
 
             modelBuilder.Entity("WebApplication1.Models.Book", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Author")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<bool>("Available")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("Category")
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("ISBN")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)");
 
                     b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("isDeleted")
-                        .HasColumnType("boolean");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
 
                     b.ToTable("Books");
                 });
 
+            modelBuilder.Entity("WebApplication1.Models.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Categories");
+                });
+
             modelBuilder.Entity("WebApplication1.Models.Rental", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
 
-                    b.Property<string>("BookISBN")
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ISBN")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -264,7 +316,7 @@ namespace WebApplication1.Migrations
                     b.Property<DateTime>("RentalDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("ReturnDate")
+                    b.Property<DateTime?>("ReturnDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UserId")
@@ -272,6 +324,8 @@ namespace WebApplication1.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BookId");
 
                     b.HasIndex("UserId");
 
@@ -329,16 +383,27 @@ namespace WebApplication1.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("WebApplication1.Models.Book", b =>
+                {
+                    b.HasOne("WebApplication1.Models.Category", "Category")
+                        .WithMany("Books")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
             modelBuilder.Entity("WebApplication1.Models.Rental", b =>
                 {
                     b.HasOne("WebApplication1.Models.Book", "Book")
                         .WithMany("Rentals")
-                        .HasForeignKey("Id")
+                        .HasForeignKey("BookId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("WebApplication1.Models.AppUser", "User")
-                        .WithMany("Rentals")
+                        .WithMany("RentedBooks")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -350,12 +415,17 @@ namespace WebApplication1.Migrations
 
             modelBuilder.Entity("WebApplication1.Models.AppUser", b =>
                 {
-                    b.Navigation("Rentals");
+                    b.Navigation("RentedBooks");
                 });
 
             modelBuilder.Entity("WebApplication1.Models.Book", b =>
                 {
                     b.Navigation("Rentals");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Category", b =>
+                {
+                    b.Navigation("Books");
                 });
 #pragma warning restore 612, 618
         }

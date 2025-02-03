@@ -4,10 +4,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace WebApplication1.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -31,6 +33,8 @@ namespace WebApplication1.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
+                    FirstName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    LastName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -55,12 +59,14 @@ namespace WebApplication1.Migrations
                 name: "Books",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    Category = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ISBN = table.Column<string>(type: "character varying(13)", maxLength: 13, nullable: false),
+                    Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Category = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     ImageUrl = table.Column<string>(type: "text", nullable: false),
                     Available = table.Column<bool>(type: "boolean", nullable: false),
-                    isDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -177,28 +183,39 @@ namespace WebApplication1.Migrations
                 name: "Rentals",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    BookId = table.Column<int>(type: "integer", nullable: false),
+                    ISBN = table.Column<string>(type: "text", nullable: false),
                     UserId = table.Column<string>(type: "text", nullable: false),
-                    BookISBN = table.Column<string>(type: "text", nullable: false),
                     RentalDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ReturnDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ReturnDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     IsReturned = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Rentals", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Rentals_AspNetUsers_Id",
-                        column: x => x.Id,
+                        name: "FK_Rentals_AspNetUsers_UserId",
+                        column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Rentals_Books_Id",
-                        column: x => x.Id,
+                        name: "FK_Rentals_Books_BookId",
+                        column: x => x.BookId,
                         principalTable: "Books",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Books",
+                columns: new[] { "Id", "Available", "Category", "ISBN", "ImageUrl", "IsDeleted", "Title" },
+                values: new object[,]
+                {
+                    { 1, true, "Programming", "9780132350884", "/images/clean-code.jpg", false, "Clean Code" },
+                    { 2, true, "Programming", "9780201633610", "/images/design-patterns.jpg", false, "Design Patterns" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -237,6 +254,16 @@ namespace WebApplication1.Migrations
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Rentals_BookId",
+                table: "Rentals",
+                column: "BookId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Rentals_UserId",
+                table: "Rentals",
+                column: "UserId");
         }
 
         /// <inheritdoc />

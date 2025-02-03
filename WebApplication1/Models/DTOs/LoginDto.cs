@@ -1,9 +1,15 @@
-﻿namespace WebApplication1.Models.DTOs
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace WebApplication1.Models.DTOs
 {
     public class LoginDto
     {
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
+        public string Email { get; set; } = string.Empty;
 
-        public string Email { get; set; }
-        public string Password { get; set; }
+        [Required(ErrorMessage = "Password is required")]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = string.Empty;
     }
 }

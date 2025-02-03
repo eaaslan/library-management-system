@@ -40,6 +40,37 @@ namespace WebApplication1.Services
            
         }
 
+        public async Task<Book> rentBook(string bookId,string userId)
+        {
+            var book = await _context.Books.FirstOrDefaultAsync(x => x.Id == bookId && !x.isDeleted && x.Available);
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
+            if (isExist(book.Id) && user!=null)
+            {
+
+                var rental = new Rental()
+                {
+                    Book = book,
+                    User = user,
+                    RentalDate = DateTime.UtcNow,
+                    ReturnDate = DateTime.UtcNow.AddDays(7),
+                    BookISBN = book.Id,
+                    IsReturned = false,
+                    UserId = userId,
+                    Id = Guid.NewGuid().ToString()
+                };
+
+                book.Available = false;
+                _context.Rentals.Add(rental);
+                await _context.SaveChangesAsync();
+                _context.Books.Update(book);
+                await _context.SaveChangesAsync();
+                return book;
+            }
+            //todo throw exception
+            throw new Exception("The book already exist");
+
+        }
+
         public async Task<IEnumerable<Book>> getAllBooks()
         {
 
@@ -71,8 +102,6 @@ namespace WebApplication1.Services
 
 
         }
-
-
 
         public bool isExist(string id) { 
             

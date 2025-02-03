@@ -17,6 +17,8 @@ namespace WebApplication1.Abstracts
 
         Task<Book> updateBook(Book book);
 
+        Task<Book> rentBook(string bookId, string userId);
+
 
     }
 }

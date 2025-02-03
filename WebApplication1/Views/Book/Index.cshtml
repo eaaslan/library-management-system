@@ -1,18 +1,19 @@
 ﻿@model IEnumerable<WebApplication1.Models.Book>
 
 @{
-    ViewBag.Title = "Kitaplar";
+    ViewBag.Title = "Books";
 }
 
-<h2>Kitaplar</h2>
+<h2>Books</h2>
 
 <table class="table">
     <thead>
         <tr>
-            <th>Resim</th>
-            <th>Başlık</th>
-            <th>Kategori</th>
-            <th>İşlemler</th>
+            <th>Image</th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Actions</th>
+           
         </tr>
     </thead>
     <tbody>
@@ -24,13 +25,24 @@
                 </td>
                 <td>@book.Title</td>
                 <td>@book.Category</td>
-                <td>
-                    <a asp-controller="Book" asp-action="Update" asp-route-id="@book.Id" class="btn btn-warning">Güncelle</a>
-                    <a asp-controller="Book" asp-action="Delete" asp-route-id="@book.Id" class="btn btn-danger" onclick="return confirm('Bu kitabı silmek istediğinize emin misiniz?');">Sil</a>
-                </td>
+
+                @if (User.IsInRole("Admin")) // only admin can see these buttons
+                {
+                    <td>
+                        <a asp-controller="Book" asp-action="Update" asp-route-id="@book.Id" class="btn btn-warning">Update</a>
+                        <a asp-controller="Book" asp-action="Delete" asp-route-id="@book.Id" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this book?');">Delete</a>
+                    </td>
+                }else{
+                    <td>
+                        <a asp-controller="Book" asp-action="Rent" asp-route-id="@book.Id" class="btn btn-warning">Rent </a>
+                    </td>
+                }
             </tr>
         }
     </tbody>
 </table>
 
-<a asp-action="Add" class="btn btn-primary">Yeni Kitap Ekle</a>
+@if (User.IsInRole("Admin")) 
+{
+    <a asp-action="Add" class="btn btn-primary">Yeni Kitap Ekle</a>
+}

@@ -7,6 +7,7 @@ namespace WebApplication1.Models
         [Key]
         public string Id { get; set; }  // ISBN as ID
 
+
         [Required]
         public string Title { get; set; }
 
@@ -19,5 +20,7 @@ namespace WebApplication1.Models
         public bool Available { get; set; }
 
         public bool isDeleted { get; set; }
+
+        public ICollection<Rental>? Rentals { get; set; }
     }
 }

@@ -1,0 +1,55 @@
+@model IEnumerable<WebApplication1.Models.Rental>
+
+@{
+    ViewData["Title"] = "My Rentals";
+}
+
+<h2>My Rentals</h2>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Book Title</th>
+                <th>Category</th>
+                <th>ISBN</th>
+                <th>Rental Date</th>
+                <th>Return Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var rental in Model)
+            {
+                <tr>
+                    <td>@rental.Book.Title</td>
+                    <td>@rental.Book.Category.Name</td>
+                    <td>@rental.ISBN</td>
+                    <td>@rental.RentalDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@(rental.ReturnDate?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                    <td>
+                        @if (rental.IsReturned)
+                        {
+                            <span class="badge bg-success">Returned</span>
+                        }
+                        else if (rental.ReturnDate < DateTime.UtcNow)
+                        {
+                            <span class="badge bg-danger">Overdue</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-primary">Active</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        You haven't rented any books yet. <a asp-controller="Book" asp-action="Index">Browse available books</a>
+    </div>
+} 

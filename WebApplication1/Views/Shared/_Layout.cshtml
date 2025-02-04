@@ -13,24 +13,78 @@
         <!-- Navigation Bar -->
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <div class="container-fluid">
-                <a class="navbar-brand" href="#">Kütüphane Yönetim</a>
+
+              
+                    @if ((User.IsInRole("Admin")) || (User.IsInRole("LibraryWorker")))
+                    {
+                    <a class="navbar-brand" class="nav-link btn btn-outline-light me-2" asp-controller="Admin" asp-action="Dashboard"> Library Management System</a>
+                    }else{
+                        <a class="navbar-brand" class="nav-link btn btn-outline-light me-2" asp-controller="Book" asp-action="Index"> Library Management System</a>
+                    }
+
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link btn btn-outline-light me-2" href="/Book">
-                                Kitaplar
+                            <a class="nav-link btn btn-outline-light me-2" asp-controller="Book" asp-action="Index" >
+                                Book
                             </a>
                         </li>
+                        @* @if (User.IsInRole("Admin")) *@
+                        @* { *@
+                        @*     <li class="nav-item"> *@
+                        @*         <a class="nav-link btn btn-outline-light me-2" asp-controller="Admin" asp-action="Dashboard"> *@
+                        @*             Admin Dashboard *@
+                        @*         </a> *@
+                        @*     </li> *@
+                        @* } *@
+                        @if ((User.IsInRole("Admin")) || (User.IsInRole("LibraryWorker"))) {
+                    
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-outline-light me-2" asp-controller="Admin" asp-action="Users">
+                                Users
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-outline-light me-2" asp-controller="Admin" asp-action="Rentals">
+                                Rentals
+                            </a>
+                        </li>
+                        }
+
                     </ul>
                     <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a class="nav-link btn btn-success" href="#">
-                                Giriş Yap
-                            </a>
-                        </li>
+                        @if (User.Identity.IsAuthenticated)
+                        {
+
+                            @if (User.IsInRole("User")) 
+{
+         <li class="nav-item">
+                                <a class="nav-link" asp-controller="Account" asp-action="MyRentals">My Rentals</a>
+                            </li>
+}
+
+                      
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">Hello, @User.Identity.Name!</a>
+                            </li>
+                            <li class="nav-item">
+                                <form asp-controller="Account" asp-action="Logout" method="post">
+                                    <button type="submit" class="btn btn-link nav-link">Log out</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Account" asp-action="Login">Login</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Account" asp-action="Register">Register</a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>

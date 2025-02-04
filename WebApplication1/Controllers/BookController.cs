@@ -6,87 +6,122 @@ using WebApplication1.Data;
 using WebApplication1.Models;
 using WebApplication1.Services;
 using WebApplication1.Abstracts;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace WebApplication1.Controllers
 {
     public class BookController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly IBookService _bookservice;
+        private readonly IBookService _bookService;
 
-        public BookController(ILogger<HomeController> logger,IBookService bookservice)
+        public BookController(ILogger<HomeController> logger, IBookService bookService)
         {
             _logger = logger;
-            _bookservice = bookservice;
-         
+            _bookService = bookService;
         }
 
-        public async Task<IActionResult> Index()
+       
+        public async Task<IActionResult> Index(string? titleFilter, string? categoryFilter)
         {
-         var books=   await _bookservice.getAllBooks();
+            ViewBag.TitleFilter = titleFilter;
+            ViewBag.CategoryFilter = categoryFilter;
+            var categories = await _bookService.GetDistinctCategories();
+            ViewBag.Categories = categories;
+
+            var books = await _bookService.GetFilteredBooks(titleFilter, categoryFilter);
             return View(books);
         }
 
-
-        public IActionResult Add()
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Add()
         {
+            ViewBag.Categories = await _bookService.GetDistinctCategories();
             return View();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
-        public IActionResult Add(Book book)
+        public async Task<IActionResult> Add(Book book)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _bookservice.addBook(book);
-                return RedirectToAction("Index", "Home");
-            }
-            else
-            {
-                //todo throw new Exception("")
+                ViewBag.Categories = await _bookService.GetDistinctCategories();
+                return View(book);
             }
 
-            return View();
+            try
+            {
+                await _bookService.addBook(book);
+                TempData["Success"] = "Book added successfully";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Error adding book: " + ex.Message);
+                ViewBag.Categories = await _bookService.GetDistinctCategories();
+                return View(book);
+            }
         }
 
-        public async Task<IActionResult> Update(string id)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Update(int id)
         {
-            var book = await _bookservice.getBookById(id);
+            var book = await _bookService.getBookById(id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.Categories = await _bookService.GetDistinctCategories();
             return View(book);
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Update(Book book)
         {
+          
+                if (!ModelState.IsValid)
+                {  
+                    return View(book);
+                }
 
-            if (ModelState.IsValid)
+              var updatedBook = await _bookService.updateBook(book);
+                return RedirectToAction(nameof(Index));
+         
+       
+          
+               
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var result = await _bookService.removeBook(id);
+            if (!result)
             {
-              var updatedBook= await _bookservice.updateBook(book);
-                return RedirectToAction("Index", "Home");
+                return NotFound();
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> Rent(int id)
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
             }
 
-            //todo hata ekle  
-
-            return NotFound();
-        }
-
-
-    
-        public async Task<IActionResult> Delete(string id)
-        {
-          
-                 await  _bookservice.removeBook(id);
-                return RedirectToAction("Index", "Home");
           
             
+                await _bookService.rentBook(id, userId);
+                return RedirectToAction(nameof(Index));
+            
+          
         }
-
-
-
-
-
-
-
     }
 }

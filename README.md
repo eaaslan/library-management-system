@@ -81,7 +81,7 @@ A robust ASP.NET Core MVC application for managing library resources, books, and
 ### Installation
 1. Clone the repository
 ```bash
-git clone [repository-url]
+git clone https://github.com/eaaslan/library-management-system.git
 ```
 
 2. Update the connection string in `appsettings.json`
@@ -138,4 +138,4 @@ dotnet run
 5. Open a Pull Request
 
 ## License
-This project is licensed under the MIT License - see the LICENSE file for details
+

@@ -33,8 +33,10 @@ namespace WebApplication1.Controllers
               //  DeletedUsers=await _userManager.Users
                 TotalRentals=await _context.Rentals.CountAsync(),
                 ActiveRentals=await _context.Rentals.CountAsync(x=>!x.IsReturned),
-                RecentRentals=await _context.Rentals.Include(x => x.User)
+                RecentRentals=await _context.Rentals
+                .Include(x => x.User)
                 .Include(x => x.Book)
+                .OrderByDescending(x=>x.RentalDate)
                 .Where(x => !x.IsReturned)
                 .ToListAsync()
 
@@ -44,6 +46,20 @@ namespace WebApplication1.Controllers
 
         }
 
+
+        public async Task<ActionResult> Rentals()
+        {
+
+            var rentals = await _context.Rentals
+                .Include(x => x.User)
+                .Include(x => x.Book)
+                .OrderByDescending(x=>!x.IsReturned)
+                .OrderByDescending(x=>x.RentalDate)
+                .ToListAsync();
+
+
+            return View(rentals);
+        }
 
         public async Task<ActionResult> ActiveRentals()
         {
@@ -132,30 +148,6 @@ namespace WebApplication1.Controllers
             return RedirectToAction(nameof(Users));
         }
 
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

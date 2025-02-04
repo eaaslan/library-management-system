@@ -77,7 +77,7 @@ namespace WebApplication1.Services
         }
 
         public async Task<IEnumerable<Book>> GetFilteredBooks(string? titleFilter, string? categoryFilter)
-        {
+        {//TODO make this more basic
             var query = _context.Books
                 .Include(b => b.Category)
                 .Where(b => !b.IsDeleted && b.Available)
@@ -149,9 +149,9 @@ namespace WebApplication1.Services
             }
         }
 
-        private async Task<bool> isExist(int id)
-        {
-            return await _context.Books.AnyAsync(x => x.Id == id && !x.IsDeleted);
-        }
+        //private async Task<bool> isExist(int id)
+        //{
+        //    return await _context.Books.AnyAsync(x => x.Id == id && !x.IsDeleted);
+        //}
     }
 }

@@ -13,6 +13,8 @@ namespace WebApplication1.Models
         [StringLength(50)]
         public string LastName { get; set; } = string.Empty;
 
+        public bool IsActive { get; set; } = false;  // Users need to be verified by library worker
+
         public virtual ICollection<Rental> RentedBooks { get; set; } = new List<Rental>();
     }
 }

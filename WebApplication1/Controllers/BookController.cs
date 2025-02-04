@@ -22,7 +22,7 @@ namespace WebApplication1.Controllers
             _bookService = bookService;
         }
 
-        [Authorize(Roles = "Admin,User")]
+       
         public async Task<IActionResult> Index(string? titleFilter, string? categoryFilter)
         {
             ViewBag.TitleFilter = titleFilter;
@@ -74,13 +74,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var categories = await _bookService.GetDistinctCategories();
-            _logger.LogInformation("Loading book for update - Book ID: {BookId}, CategoryId: {CategoryId}, Category Name: {CategoryName}", 
-                book.Id, book.CategoryId, book.Category?.Name);
-            _logger.LogInformation("Available categories: {Categories}", 
-                string.Join(", ", categories.Select(c => $"{c.Id}:{c.Name}")));
-
-            ViewBag.Categories = categories;
+            ViewBag.Categories = await _bookService.GetDistinctCategories();
             return View(book);
         }
 
@@ -88,56 +82,18 @@ namespace WebApplication1.Controllers
         [HttpPost]
         public async Task<IActionResult> Update(Book book)
         {
-            try
-            {
-                _logger.LogInformation("Attempting to update book - Book ID: {BookId}, CategoryId: {CategoryId}, Title: {Title}", 
-                    book.Id, book.CategoryId, book.Title);
-
-                // Log all form values
-                foreach (var key in Request.Form.Keys)
-                {
-                    _logger.LogInformation("Form value - {Key}: {Value}", key, Request.Form[key].ToString());
-                }
-                
+          
                 if (!ModelState.IsValid)
-                {
-                    _logger.LogWarning("Invalid model state when updating book {BookId}", book.Id);
-                    foreach (var modelStateEntry in ModelState.Values)
-                    {
-                        foreach (var error in modelStateEntry.Errors)
-                        {
-                            _logger.LogWarning("Validation error: {ErrorMessage}", error.ErrorMessage);
-                        }
-                    }
-
-                    // Log model state for CategoryId specifically
-                    if (ModelState.ContainsKey("CategoryId"))
-                    {
-                        var categoryState = ModelState["CategoryId"];
-                        _logger.LogWarning("CategoryId state - Raw value: {RawValue}, Attempted value: {AttemptedValue}", 
-                            categoryState.RawValue, categoryState.AttemptedValue);
-                    }
-
-                    var categories = await _bookService.GetDistinctCategories();
-                    _logger.LogInformation("Categories count: {Count}, Selected CategoryId: {CategoryId}", 
-                        categories.Count, book.CategoryId);
-                    ViewBag.Categories = categories;
+                {  
                     return View(book);
                 }
 
-                var updatedBook = await _bookService.updateBook(book);
-                _logger.LogInformation("Successfully updated book {BookId} with CategoryId {CategoryId}", 
-                    updatedBook.Id, updatedBook.CategoryId);
-                TempData["Success"] = "Book updated successfully";
+              var updatedBook = await _bookService.updateBook(book);
                 return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating book {BookId}", book.Id);
-                ModelState.AddModelError("", $"Error updating book: {ex.Message}");
-                ViewBag.Categories = await _bookService.GetDistinctCategories();
-                return View(book);
-            }
+         
+       
+          
+               
         }
 
         [Authorize(Roles = "Admin")]
@@ -160,17 +116,12 @@ namespace WebApplication1.Controllers
                 return Unauthorized();
             }
 
-            try
-            {
+          
+            
                 await _bookService.rentBook(id, userId);
                 return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error renting book");
-                TempData["Error"] = "Could not rent the book. Please try again later.";
-                return RedirectToAction(nameof(Index));
-            }
+            
+          
         }
     }
 }

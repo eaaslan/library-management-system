@@ -1,0 +1,82 @@
+@model IEnumerable<WebApplication1.Models.Book>
+
+<div class="container-fluid">
+    <h2>Deleted Books</h2>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Deleted Books List</h5>
+                <a asp-action="Dashboard" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>ISBN</th>
+                            <th>Category</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var book in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <img src="@book.ImageUrl" alt="@book.Title" style="width:50px; height:auto;" />
+                                </td>
+                                <td>@book.Title</td>
+                                <td>@book.Author</td>
+                                <td>@book.ISBN</td>
+                                <td>@book.Category?.Name</td>
+                                <td>
+                                    <button class="btn btn-success btn-sm" onclick="restoreBook(@book.Id)">
+                                        Restore
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="permanentlyDeleteBook(@book.Id)">
+                                        Delete Permanently
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function restoreBook(bookId) {
+            if (confirm('Are you sure you want to restore this book?')) {
+                // Add restore logic here
+                $.post('/Admin/RestoreBook/' + bookId)
+                    .done(function () {
+                        location.reload();
+                    })
+                    .fail(function () {
+                        alert('Failed to restore book. Please try again.');
+                    });
+            }
+        }
+
+        function permanentlyDeleteBook(bookId) {
+            if (confirm('Are you sure you want to permanently delete this book? This action cannot be undone.')) {
+                // Add permanent deletion logic here
+                $.post('/Admin/PermanentlyDeleteBook/' + bookId)
+                    .done(function () {
+                        location.reload();
+                    })
+                    .fail(function () {
+                        alert('Failed to delete book. Please try again.');
+                    });
+            }
+        }
+    </script>
+} 

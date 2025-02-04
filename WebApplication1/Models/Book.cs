@@ -30,7 +30,6 @@ namespace WebApplication1.Models
         public string? ImageUrl { get; set; }
 
         [Required]
-        [Range(1, int.MaxValue, ErrorMessage = "Please select a category")]
         [Display(Name = "Category")]
         public int CategoryId { get; set; }
 
@@ -39,7 +38,7 @@ namespace WebApplication1.Models
         public bool IsDeleted { get; set; } = false;
 
         [ForeignKey("CategoryId")]
-        public virtual Category? Category { get; set; }
+        public virtual Category? Category { get; set; }//FIX: why cant update without making this nullable ?
 
         public virtual ICollection<Rental>? Rentals { get; set; }
     }

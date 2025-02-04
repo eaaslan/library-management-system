@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
 using WebApplication1.Models.DTOs;
 using WebApplication1.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebApplication1.Controllers
 {
@@ -22,6 +23,29 @@ namespace WebApplication1.Controllers
             _signInManager = signInManager;
             _context = context;
         }
+
+
+        //[Authorize(Roles = "Admin")]
+        //public async Task<IEnumerable<Book>> GetFilteredUsers(string? nameFilter, string? emailFilter)
+        ////merge firstName and lastName to make it easier to search
+        //{
+        //    var query = _context.Books.AsQueryable();
+
+        //    if (!string.IsNullOrEmpty(nameFilter))
+        //    {
+        //        query = query.Where(b => EF.Functions.Like(b.FirstName.ToLower(), $"%{FirstName.ToLower()}%"));
+        //    }
+
+        //    if (!string.IsNullOrEmpty(emailFilter) && emailFilter != "All")
+        //    {
+        //        query = query.Where(b => b.email == emailFilter);
+        //    }
+
+        //    return await query.ToListAsync();
+        //}
+
+
+
 
         [HttpGet]
         public async Task<IActionResult> MyRentals()

@@ -40,16 +40,16 @@
             <option value="">Select a Category</option>
             @if (ViewBag.Categories != null)
             {
-                @foreach (var category in (List<Category>)ViewBag.Categories)
+                @foreach (var category in ViewBag.Categories)
                 {
-                    if (Model.CategoryId == category.Id)
-                    {
-                        <option value="@category.Id" selected>@category.Name</option>
-                    }
-                    else
-                    {
+                    @* if (Model.CategoryId == category.Id) *@
+                    @* { *@
+                    @*     <option value="@category.Id" selected>@category.Name</option> *@
+                    @* } *@
+                    @* else *@
+                    @* { *@
                         <option value="@category.Id">@category.Name</option>
-                    }
+                    @* } *@
                 }
             }
         </select>

@@ -37,7 +37,7 @@ A robust ASP.NET Core MVC application for managing library resources, books, and
 ## Technical Details
 
 ### Built With
-- ASP.NET Core MVC (.NET 7.0)
+- ASP.NET Core MVC (.NET 8.0)
 - Entity Framework Core
 - PostgreSQL Database
 - Identity Framework for Authentication
@@ -71,10 +71,33 @@ A robust ASP.NET Core MVC application for managing library resources, books, and
    - Client-side validation
    - Server-side validation
 
+## Screenshots
+
+### 📚 Admin Book Management
+![Admin Book View](https://github.com/user-attachments/assets/458be9c3-be4f-4776-a9e1-dfa60ef98881)
+
+### 👥 Admin User Management
+![Admin User Management View](https://github.com/user-attachments/assets/4099c4cb-5d40-4d59-9924-0154150d0f11)
+
+### 📋 Admin Rental History
+![Admin Rental History View](https://github.com/user-attachments/assets/5ee3ac24-9bb7-4779-b8d0-e3b73ed743fb)
+
+### 📊 Admin Dashboard
+![Admin Dashboard View](https://github.com/user-attachments/assets/e93df45b-fc08-49dd-bce4-ec1f7835637b)
+
+### 🔒 Public View
+![Unauthenticated User View](https://github.com/user-attachments/assets/96cd8f38-1ff1-40ee-aaf5-2d9bdd15a496)
+
+### 📖 User Book View
+![User Book View](https://github.com/user-attachments/assets/f9b39a77-34fb-456e-ad9f-a8e9f60d2943)
+
+### 📅 User Rental History
+![User Rental History View](https://github.com/user-attachments/assets/3946e162-ca3d-43f9-bb7a-d371ed46f6cd)
+
 ## Getting Started
 
 ### Prerequisites
-- .NET 7.0 SDK
+- .NET 8.0 SDK
 - PostgreSQL
 - Visual Studio 2022 or VS Code
 
@@ -138,4 +161,4 @@ dotnet run
 5. Open a Pull Request
 
 ## License
-
+[MIT License](LICENSE)

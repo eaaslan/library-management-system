@@ -35,8 +35,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-//using (var scope = app.Services.CreateScope())
-//{
+// using (var scope = app.Services.CreateScope())
+// {
 //    var services = scope.ServiceProvider;
 //    try
 //    {
@@ -48,7 +48,7 @@ if (!app.Environment.IsDevelopment())
 //        var logger = services.GetRequiredService<ILogger<Program>>();
 //        logger.LogError(ex, "An error occured while adding seed data.");
 //    }
-//}
+// }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -59,5 +59,5 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Book}/{action=Index}/{id?}");
-   
+
 app.Run();

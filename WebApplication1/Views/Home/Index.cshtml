@@ -1,0 +1,36 @@
+﻿@model IEnumerable<WebApplication1.Models.Book>
+
+@{
+    ViewBag.Title = "Kitaplar";
+}
+
+<h2>Kitaplar</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Resim</th>
+            <th>Başlık</th>
+            <th>Kategori</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var book in Model)
+        {
+            <tr>
+                <td>
+                    <img src="@book.ImageUrl" alt="@book.Title" style="width:100px; height:auto;" />
+                </td>
+                <td>@book.Title</td>
+                <td>@book.Category</td>
+                <td>
+                    <a asp-controller="Book" asp-action="Update" asp-route-id="@book.Id" class="btn btn-warning">Güncelle</a>
+                    <a asp-controller="Book" asp-action="Delete" asp-route-id="@book.Id" class="btn btn-danger" onclick="return confirm('Bu kitabı silmek istediğinize emin misiniz?');">Sil</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Add" class="btn btn-primary">Yeni Kitap Ekle</a>

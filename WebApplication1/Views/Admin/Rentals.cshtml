@@ -1,0 +1,43 @@
+﻿@model IEnumerable<WebApplication1.Models.Rental>
+
+<div class="table-responsive">
+<table class="table table-striped">
+<thead>
+    <tr>
+        <th>Email</th>
+        <th>Book Title</th>
+        <th>Rental Date</th>
+        <th>Return Date</th>
+        <th>Status</th>
+    </tr>
+</thead>
+<tbody>
+    @foreach (var rental in Model)
+    {
+        <tr>
+
+            <td>@rental.User.Email</td>
+            <td>@rental.Book.Title</td>
+            <td>@rental.RentalDate</td>
+            <td>@rental.ReturnDate</td>
+            <td>
+
+                @if (rental.IsReturned)
+                {
+                    <span class="badge bg-success">Returned</span>
+                }
+                else
+                {
+
+                    <span class="badge bg-primary">Active</span>
+                }
+
+            </td>
+
+        </tr>
+
+    }
+</tbody>
+</table>
+
+</div>

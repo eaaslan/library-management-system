@@ -1,0 +1,71 @@
+﻿@model WebApplication1.Models.Book
+
+@{
+    ViewData["Title"] = "Add Book";
+}
+
+<h2>Add New Book</h2>
+
+<div class="row">
+    <div class="col-md-8">
+        <form asp-controller="Book" asp-action="Add" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="ISBN" class="control-label"></label>
+                <input asp-for="ISBN" class="form-control" />
+                <span asp-validation-for="ISBN" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Title" class="control-label"></label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Author" class="control-label"></label>
+                <input asp-for="Author" class="form-control" />
+                <span asp-validation-for="Author" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Description" class="control-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="CategoryId" class="control-label">Category</label>
+                <select asp-for="CategoryId" class="form-control">
+                    <option value="">Select a Category</option>
+                    @foreach (var category in (List<Category>)ViewBag.Categories)
+                    {
+                        <option value="@category.Id">@category.Name</option>
+                    }
+                </select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="ImageUrl" class="control-label"></label>
+                <input asp-for="ImageUrl" class="form-control" />
+                <span asp-validation-for="ImageUrl" class="text-danger"></span>
+            </div>
+
+            <div class="form-check mb-3">
+                <input asp-for="Available" class="form-check-input" checked="checked" />
+                <label class="form-check-label" asp-for="Available">Available</label>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Add Book</button>
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

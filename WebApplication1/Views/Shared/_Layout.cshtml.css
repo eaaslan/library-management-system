@@ -46,3 +46,55 @@ button.accept-policy {
   white-space: nowrap;
   line-height: 60px;
 }
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 250px;
+    z-index: 100;
+    padding: 0;
+    box-shadow: 0 0 10px rgba(0,0,0,.05);
+}
+
+.main-content{
+  margin-left: 250px;
+  padding: 20px;
+  transition: margin-left .3s ease-in-out;
+}
+
+/* Sidebar link styling */
+.sidebar .nav-link {
+  padding: 0.8rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s;
+}
+
+.sidebar .nav-link:hover {
+  background-color: #f8f9fa;
+  color: #000 !important;
+}
+
+.sidebar .nav-link.active {
+  background-color: #f8f9fa;
+  border-left: 3px solid #6c757d;
+  color: #000;
+}
+
+.sidebar-profile{
+  padding: 1.25rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+}

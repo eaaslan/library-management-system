@@ -11,6 +11,7 @@ namespace WebApplication1.Data
         public DbSet<Book> Books { get; set; }
         public DbSet<Rental> Rentals { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

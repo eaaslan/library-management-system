@@ -15,6 +15,8 @@ namespace WebApplication1.Models
 
         public bool IsActive { get; set; } = false;  // Users need to be verified by library worker
 
+        public bool IsVerified { get; set; }
+
         public virtual ICollection<Rental> RentedBooks { get; set; } = new List<Rental>();
     }
 }

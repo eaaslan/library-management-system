@@ -2,87 +2,185 @@
 
 @*TODO create graph to show statistics *@
 
-<div class="container-fluid">
-    <h2 class="mt-3">Admin Dashboard</h2>
-    <div id="card-container" class="container-fluid d-flex justify-content-between align-items-center mt-5"> 
-        <div class="card text-white bg-primary mb-3" style="max-width: 18rem;">
-            <div class="card-header">Books</div>
-            <div class="card-body">
-                <h5 class="card-title">Total Books: @Model.TotalBooks</h5>
-                <h5 class="card-title">Deleted Books: @Model.DeletedBooks</h5>
-                <p class="card-text">Go to books page</p>
-            </div>
-        </div>
 
-        <div class="card text-white bg-primary mb-3" style="max-width: 18rem;">
-            <div class="card-header">Users</div>
-            <div class="card-body">
-                <h5 class="card-title">Total Users: @Model.TotalUsers</h5>
-                <h5 class="card-title">Deleted Users: @Model.DeletedUsers</h5>
-              
-                <p class="card-text">   <a asp-action="Users" class="btn btn-secondary me-2">Go to users page</a></p>
-            </div>
-        </div>
+<div class="container-fluid p-4">
 
-
-        <div class="card text-white bg-primary mb-3" style="max-width: 18rem;">
-            <div class="card-header">Rentals</div>
-            <div class="card-body">
-                <h5 class="card-title">Total Rentals: @Model.TotalRentals</h5>
-                <h5 class="card-title">Active Rentals: @Model.ActiveRentals</h5>
-                <p class="card-text">Go to rentals page</p>
-            </div>
-        </div>
-
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Rentals Management</h2>
     </div>
 
+    <!-- Statistics Cards Row -->
+    <div class="row g-4 mb-4">
+        <!-- Capacity Card -->
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Books</h6>
+                            <h3 class="mb-0">@Model.TotalBooks</h3>
+                        </div>
+                        <div class="rounded-circle p-3 bg-warning bg-opacity-10">
+                            <i class="bi bi-book text-warning fs-4"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">Update Now</small>
+                </div>
+            </div>
+        </div>
 
-    <div>
-        <h3> Recent Rentals </h3>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                 
-                    <th scope="col">User</th>
-                    <th scope="col">Book</th>
-                    <th scope="col">Rental Date</th>
-                    <th scope="col">Return Date</th>
-                    <th scope="col">Status</th>
-                </tr>
-            </thead>
-            <tbody>
+        <!-- Revenue Card -->
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Users</h6>
+                            <h3 class="mb-0">@Model.TotalUsers</h3>
+                        </div>
+                        <div class="rounded-circle p-3 bg-success bg-opacity-10">
+                            <i class="bi bi-people text-success fs-4"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">Last day</small>
+                </div>
+            </div>
+        </div>
 
-                @foreach (var rental in Model.RecentRentals)
-                { 
-                  <tr>
+        <!-- Errors Card -->
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Active Rentals</h6>
+                            <h3 class="mb-0">@Model.ActiveRentals</h3>
+                        </div>
+                        <div class="rounded-circle p-3 bg-danger bg-opacity-10">
+                            <i class="bi bi-clock-history text-danger fs-4"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">In the last hour</small>
+                </div>
+            </div>
+        </div>
 
-                        <td>@rental.User.UserName</td>
-                        <td>@rental.Book.Title</td>
-                        <td>@rental.RentalDate</td>
-                        <td>@rental.ReturnDate</td>
-                    <td>
+        <!-- Followers Card -->
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Rentals</h6>
+                            <h3 class="mb-0">@Model.TotalRentals</h3>
+                        </div>
+                        <div class="rounded-circle p-3 bg-info bg-opacity-10">
+                            <i class="bi bi-graph-up text-info fs-4"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">Update now</small>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                        @if(rental.IsReturned){
-                            <span class="badge bg-success">Returned</span>
-                        }else{
+    <!-- Graph Section -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Users Behavior</h5>
+            <h6 class="card-subtitle mb-4 text-muted">24 Hours Performance</h6>
+            <canvas id="usersChart" style="width: 100%; height: 300px;"></canvas>
+        </div>
+    </div>
 
-                            <span class="badge bg-primary">Active</span>
+    <!-- Recent Rentals Table -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-body">
+            <h5 class="card-title mb-4">Recent Rentals</h5>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                         
+                            <th scope="col">User</th>
+                            <th scope="col">Book</th>
+                            <th scope="col">Rental Date</th>
+                            <th scope="col">Return Date</th>
+                            <th scope="col">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @foreach (var rental in Model.RecentRentals)
+                        { 
+                          <tr>
+
+                                <td>@rental.User.UserName</td>
+                                <td>@rental.Book.Title</td>
+                                <td>@rental.RentalDate</td>
+                                <td>@rental.ReturnDate</td>
+                            <td>
+
+                                @if(rental.IsReturned){
+                                    <span class="badge bg-success">Returned</span>
+                                }else{
+
+                                    <span class="badge bg-primary">Active</span>
+                                }
+
+                            </td>
+
+                          </tr>
+
                         }
 
-                    </td>
-
-                  </tr>
-
-                }
-
-            </tbody>
-        </table>
-
-
-
-
-
-
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    
-</div> 
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Initialize the chart
+        const ctx = document.getElementById('usersChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+                datasets: [{
+                    label: 'Dataset 1',
+                    data: [320, 330, 325, 340, 335, 355, 345, 365, 360, 370],
+                    fill: true,
+                    backgroundColor: 'rgba(255, 193, 7, 0.2)',
+                    borderColor: 'rgba(255, 193, 7, 1)',
+                    tension: 0.4
+                },
+                {
+                    label: 'Dataset 2',
+                    data: [300, 310, 305, 320, 315, 335, 325, 345, 340, 350],
+                    fill: true,
+                    backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                    borderColor: 'rgba(40, 167, 69, 1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 300,
+                        max: 500
+                    }
+                }
+            }
+        });
+    </script>
+} 

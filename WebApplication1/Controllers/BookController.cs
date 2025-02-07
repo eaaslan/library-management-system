@@ -8,6 +8,8 @@ using WebApplication1.Services;
 using WebApplication1.Abstracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 namespace WebApplication1.Controllers
 {
@@ -15,23 +17,86 @@ namespace WebApplication1.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IBookService _bookService;
+        private readonly ApplicationDbContext _context;
+        private readonly UserManager<AppUser> _userManager;
 
-        public BookController(ILogger<HomeController> logger, IBookService bookService)
+        public BookController(ILogger<HomeController> logger, IBookService bookService, ApplicationDbContext context, UserManager<AppUser> userManager)
         {
             _logger = logger;
             _bookService = bookService;
+            _context = context;
+            _userManager = userManager;
         }
 
-       
-        public async Task<IActionResult> Index(string? titleFilter, string? categoryFilter)
+        public async Task<IActionResult> Index(
+            string sortOrder,
+            string currentFilter,
+            string searchString,
+            string categoryFilter,
+            string availabilityFilter,
+            int? pageNumber)
         {
-            ViewBag.TitleFilter = titleFilter;
-            ViewBag.CategoryFilter = categoryFilter;
-            var categories = await _bookService.GetDistinctCategories();
-            ViewBag.Categories = categories;
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["TitleSortParm"] = String.IsNullOrEmpty(sortOrder) ? "title_desc" : "";
+            ViewData["AuthorSortParm"] = sortOrder == "author" ? "author_desc" : "author";
+            ViewData["CategorySortParm"] = sortOrder == "category" ? "category_desc" : "category";
 
-            var books = await _bookService.GetFilteredBooks(titleFilter, categoryFilter);
-            return View(books);
+            if (searchString != null)
+            {
+                pageNumber = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
+
+            ViewData["CurrentFilter"] = searchString;
+            ViewBag.CurrentCategory = categoryFilter;
+            ViewBag.CurrentAvailability = availabilityFilter;
+            ViewBag.Categories = await _context.Categories.ToListAsync();
+
+            var books = _context.Books
+                .Include(b => b.Category)  // Include the Category navigation property
+                .Where(b => !b.IsDeleted);
+
+            // Apply filters
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                books = books.Where(s => s.Title.Contains(searchString)
+                                    || s.Author.Contains(searchString));
+            }
+
+            if (!String.IsNullOrEmpty(categoryFilter))
+            {
+                books = books.Where(b => b.Category.Name == categoryFilter);  // Use Category.Name instead of ToString()
+            }
+
+            // Add availability filter
+            if (!String.IsNullOrEmpty(availabilityFilter))
+            {
+                if (availabilityFilter == "available")
+                {
+                    books = books.Where(b => b.Available);
+                }
+                else if (availabilityFilter == "rented")
+                {
+                    books = books.Where(b => !b.Available);
+                }
+            }
+
+            // Apply sorting
+            books = sortOrder switch
+            {
+                "title_desc" => books.OrderByDescending(s => s.Title),
+                "author" => books.OrderBy(s => s.Author),
+                "author_desc" => books.OrderByDescending(s => s.Author),
+                "category" => books.OrderBy(s => s.Category.Name),  // Use Category.Name
+                "category_desc" => books.OrderByDescending(s => s.Category.Name),  // Use Category.Name
+                _ => books.OrderBy(s => s.Title),
+            };
+
+            int pageSize = 8;
+            return View(await PaginatedList<Book>.CreateAsync(books, pageNumber ?? 1, pageSize));
         }
 
         [Authorize(Roles = "Admin")]
@@ -110,18 +175,21 @@ namespace WebApplication1.Controllers
         [Authorize(Roles = "User")]
         public async Task<IActionResult> Rent(int id)
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized();
             }
 
-          
-            
-                await _bookService.rentBook(id, userId);
+            var user = await _userManager.FindByIdAsync(userId);
+            if (!user.IsVerified)
+            {
+                TempData["Error"] = "Your account needs to be verified before you can rent books.";
                 return RedirectToAction(nameof(Index));
-            
-          
+            }
+
+            await _bookService.rentBook(id, userId);
+            return RedirectToAction(nameof(Index));
         }
     }
 }

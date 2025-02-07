@@ -8,13 +8,15 @@ using WebApplication1.Models.ViewModels;
 
 namespace WebApplication1.Controllers
 {
+    //TODO make pagination lowercase
     [Authorize(Roles = "Admin")]
-    public class AdminController : Controller
+    public class AdminController : AdminBaseController
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<AppUser> _userManager;
 
         public AdminController(ApplicationDbContext context, UserManager<AppUser> userManager)
+            : base(context)
         {
             _context = context;
             _userManager = userManager;
@@ -47,18 +49,60 @@ namespace WebApplication1.Controllers
         }
 
 
-        public async Task<ActionResult> Rentals()
+        public async Task<IActionResult> Rentals(
+            string sortOrder,
+            string searchString,
+            string statusFilter,
+            int pageNumber = 1)
         {
+            var pageSize = 10; // You can adjust this number
+            ViewData["CurrentFilter"] = searchString;
+            ViewData["CurrentSort"] = sortOrder;
+            ViewBag.CurrentStatus = statusFilter;
 
-            var rentals = await _context.Rentals
+            var rentals = _context.Rentals
                 .Include(x => x.User)
                 .Include(x => x.Book)
-                .OrderByDescending(x=>!x.IsReturned)
-                .OrderByDescending(x=>x.RentalDate)
-                .ToListAsync();
+                .AsQueryable();
 
+            // Apply filters
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                rentals = rentals.Where(r => 
+                    r.User.Email.Contains(searchString) ||
+                    r.Book.Title.Contains(searchString));
+            }
 
-            return View(rentals);
+            if (!string.IsNullOrEmpty(statusFilter))
+            {
+                if (statusFilter == "active")
+                {
+                    rentals = rentals.Where(r => !r.IsReturned);
+                }
+                else if (statusFilter == "returned")
+                {
+                    rentals = rentals.Where(r => r.IsReturned);
+                }
+            }
+
+            // Apply sorting
+            switch (sortOrder)
+            {
+                case "date_desc":
+                    rentals = rentals.OrderByDescending(r => r.RentalDate);
+                    break;
+                case "return":
+                    rentals = rentals.OrderBy(r => r.ReturnDate);
+                    break;
+                case "user":
+                    rentals = rentals.OrderBy(r => r.User.Email);
+                    break;
+                default: // date ascending
+                    rentals = rentals.OrderBy(r => r.RentalDate);
+                    break;
+            }
+
+            return View(await PaginatedList<Rental>.CreateAsync(rentals, pageNumber, pageSize));
         }
 
         public async Task<ActionResult> ActiveRentals()
@@ -75,36 +119,51 @@ namespace WebApplication1.Controllers
         }
 
 
-        public async Task<ActionResult> Users(string? nameFilter, string? emailFilter, bool includeInactive = false)
+        public async Task<IActionResult> Users(
+            string searchString,
+            string sortOrder,
+            bool includeInactive = false,
+            int pageNumber = 1)
         {
-            var query = _userManager.Users
-            .OrderByDescending(u => u.IsActive)
-            .AsQueryable();
+            var pageSize = 10; // You can adjust this number
+            ViewData["CurrentFilter"] = searchString;
+            ViewData["CurrentSort"] = sortOrder;
+            ViewBag.IncludeInactive = includeInactive;
+
+            var users = _userManager.Users.AsQueryable();
+
+            // Apply filters
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                users = users.Where(u => 
+                    u.Email.Contains(searchString) ||
+                    u.FirstName.Contains(searchString) ||
+                    u.LastName.Contains(searchString));
+            }
 
             if (!includeInactive)
             {
-                query = query.Where(u => u.IsActive);
+                users = users.Where(u => u.IsActive);
             }
 
-            if (!string.IsNullOrEmpty(nameFilter))
-            { //TODO merge firstName and lastName to make it easier to search
-                query = query.Where(u => 
-                    EF.Functions.Like(u.FirstName.ToLower(), $"%{nameFilter.ToLower()}%") ||
-                    EF.Functions.Like(u.LastName.ToLower(), $"%{nameFilter.ToLower()}%")
-                );
-            }
-
-            if (!string.IsNullOrEmpty(emailFilter))
+            // Apply sorting
+            switch (sortOrder)
             {
-                query = query.Where(u => EF.Functions.Like(u.Email.ToLower(), $"%{emailFilter.ToLower()}%"));
+                case "name_desc":
+                    users = users.OrderByDescending(u => u.FirstName);
+                    break;
+                case "email":
+                    users = users.OrderBy(u => u.Email);
+                    break;
+                case "email_desc":
+                    users = users.OrderByDescending(u => u.Email);
+                    break;
+                default: // name ascending
+                    users = users.OrderBy(u => u.FirstName);
+                    break;
             }
 
-            ViewBag.NameFilter = nameFilter;
-            ViewBag.EmailFilter = emailFilter;
-            ViewBag.IncludeInactive = includeInactive;
-
-            var users = await query.ToListAsync();
-            return View(users);
+            return View(await PaginatedList<AppUser>.CreateAsync(users, pageNumber, pageSize));
         }
 
 
@@ -146,6 +205,95 @@ namespace WebApplication1.Controllers
             var updatedUser = await _userManager.UpdateAsync(existingUser);
 
             return RedirectToAction(nameof(Users));
+        }
+
+        public async Task<IActionResult> Books(
+            string sortOrder,
+            string currentFilter,
+            string searchString,
+            string categoryFilter,
+            int? pageNumber)
+        {
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["TitleSortParm"] = String.IsNullOrEmpty(sortOrder) ? "title_desc" : "";
+            ViewData["AuthorSortParm"] = sortOrder == "author" ? "author_desc" : "author";
+            ViewData["CategorySortParm"] = sortOrder == "category" ? "category_desc" : "category";
+
+            if (searchString != null)
+            {
+                pageNumber = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
+
+            ViewData["CurrentFilter"] = searchString;
+            ViewBag.CurrentCategory = categoryFilter;
+            ViewBag.Categories = await _context.Categories.ToListAsync();
+
+            var books = from b in _context.Books
+                        select b;
+
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                books = books.Where(s => s.Title.Contains(searchString)
+                                    || s.Author.Contains(searchString));
+            }
+
+            if (!String.IsNullOrEmpty(categoryFilter))
+            {
+                books = books.Where(s => s.Category.ToString() == categoryFilter);
+            }
+
+            books = sortOrder switch
+            {
+                "title_desc" => books.OrderByDescending(s => s.Title),
+                "author" => books.OrderBy(s => s.Author),
+                "author_desc" => books.OrderByDescending(s => s.Author),
+                "category" => books.OrderBy(s => s.Category),
+                "category_desc" => books.OrderByDescending(s => s.Category),
+                _ => books.OrderBy(s => s.Title),
+            };
+
+            int pageSize = 10;
+            return View(await PaginatedList<Book>.CreateAsync(books, pageNumber ?? 1, pageSize));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> VerifyUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            user.IsVerified = true;
+            await _userManager.UpdateAsync(user);
+
+            // Mark related notification as read
+            var notification = await _context.Notifications
+                .FirstOrDefaultAsync(n => n.UserId == id && n.Type == "UserRegistration");
+            if (notification != null)
+            {
+                notification.IsRead = true;
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction(nameof(Users));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkNotificationAsRead(int id)
+        {
+            var notification = await _context.Notifications.FindAsync(id);
+            if (notification != null)
+            {
+                notification.IsRead = true;
+                await _context.SaveChangesAsync();
+            }
+            return Ok();
         }
 
     }

@@ -83,6 +83,11 @@ namespace WebApplication1.Controllers
 
             if (result.Succeeded)
             {
+                var appUser = await _userManager.FindByEmailAsync(user.Email);
+                if (await _userManager.IsInRoleAsync(appUser, "Admin") || await _userManager.IsInRoleAsync(appUser, "LibraryWorker"))
+                {
+                    return RedirectToAction("Dashboard", "Admin");
+                }
                 return RedirectToAction("Index", "Book");
             }
 
@@ -108,7 +113,8 @@ namespace WebApplication1.Controllers
                 UserName = userRegister.Email, // Use email as username for consistency
                 Email = userRegister.Email,
                 FirstName = userRegister.FirstName,
-                LastName = userRegister.LastName
+                LastName = userRegister.LastName,
+                IsVerified = false // Set to false by default
             };
 
             var result = await _userManager.CreateAsync(user, userRegister.Password);
@@ -117,6 +123,21 @@ namespace WebApplication1.Controllers
             {
                 await _userManager.AddToRoleAsync(user, "User"); // Add user to default "User" role
                 await _signInManager.SignInAsync(user, isPersistent: false);
+
+                // Create notification for admin
+                var notification = new Notification
+                {
+                    Title = "New User Registration",
+                    Message = $"New user {user.Email} has registered and needs verification.",
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false,
+                    Type = "UserRegistration",
+                    UserId = user.Id
+                };
+
+                _context.Notifications.Add(notification);
+                await _context.SaveChangesAsync();
+
                 return RedirectToAction("Index", "Book");
             }
 

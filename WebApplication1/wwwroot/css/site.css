@@ -20,3 +20,123 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.notifications-dropdown {
+    width: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.notifications-body .dropdown-item.unread {
+    background-color: #f8f9fa;
+    position: relative;
+}
+
+.notifications-body .dropdown-item.unread::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    background-color: #dc3545;
+    border-radius: 50%;
+    margin-left: -3px;
+}
+
+.notifications-body .dropdown-item:hover {
+    background-color: #e9ecef;
+}
+
+.notification-bar {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1000;
+}
+
+.notification-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #f8f9fa;
+    color: #333;
+    text-decoration: none;
+    margin-right: 1rem;
+}
+
+.notification-icon:hover {
+    background: #e9ecef;
+    color: #333;
+}
+
+.notifications-dropdown {
+    margin-top: 10px;
+    width: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.notifications-body .dropdown-item.unread {
+    background-color: #f8f9fa;
+    position: relative;
+}
+
+.notifications-body .dropdown-item.unread::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    background-color: #dc3545;
+    border-radius: 50%;
+    margin-left: -3px;
+}
+
+.notifications-body .dropdown-item:hover {
+    background-color: #e9ecef;
+}
+
+.dropdown-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.admin-navbar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 250px; /* sidebar width */
+    z-index: 1000;
+    height: 68px; /* match sidebar header height */
+    border-bottom: 1px solid #dee2e6;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 250px;
+    z-index: 100;
+}
+
+.sidebar-header {
+    height: 73px; /* match navbar height */
+    background: white;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.main-content {
+    margin-left: 250px;
+    margin-top: 73px;
+    padding: 20px;
+}

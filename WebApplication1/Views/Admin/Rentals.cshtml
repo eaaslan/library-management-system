@@ -1,43 +1,130 @@
-﻿@model IEnumerable<WebApplication1.Models.Rental>
+﻿@model PaginatedList<WebApplication1.Models.Rental>
 
-<div class="table-responsive">
-<table class="table table-striped">
-<thead>
-    <tr>
-        <th>Email</th>
-        <th>Book Title</th>
-        <th>Rental Date</th>
-        <th>Return Date</th>
-        <th>Status</th>
-    </tr>
-</thead>
-<tbody>
-    @foreach (var rental in Model)
-    {
-        <tr>
+<div class="container-fluid p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Rentals Management</h2>
+    </div>
 
-            <td>@rental.User.Email</td>
-            <td>@rental.Book.Title</td>
-            <td>@rental.RentalDate</td>
-            <td>@rental.ReturnDate</td>
-            <td>
 
-                @if (rental.IsReturned)
-                {
-                    <span class="badge bg-success">Returned</span>
-                }
-                else
-                {
+    
+    <!-- Search and Filter -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" asp-controller="Admin" asp-action="Rentals" class="row g-3">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="searchString">Search</label>
+                        <input type="text" class="form-control" id="searchString" name="searchString"
+                               value="@ViewData["CurrentFilter"]" placeholder="Search by user or book">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="sortOrder">Sort By</label>
+                        <select class="form-control" id="sortOrder" name="sortOrder">
+                            <option value="date" selected="@(ViewBag.CurrentSort == "date")">Rental Date</option>
+                            <option value="date_desc" selected="@(ViewBag.CurrentSort == "date_desc")">Rental Date (Descending)</option>
+                            <option value="return" selected="@(ViewBag.CurrentSort == "return")">Return Date</option>
+                            <option value="user" selected="@(ViewBag.CurrentSort == "user")">User</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="statusFilter">Status</label>
+                        <select class="form-control" id="statusFilter" name="statusFilter">
+                            <option value="">All</option>
+                            <option value="active" selected="@(ViewBag.CurrentStatus == "active")">Active</option>
+                            <option value="returned" selected="@(ViewBag.CurrentStatus == "returned")">Returned</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2 align-self-end">
+                    <button type="submit" class="btn btn-primary w-100">Apply</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-                    <span class="badge bg-primary">Active</span>
-                }
+    <!-- Rentals Table -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Book Title</th>
+                            <th>Rental Date</th>
+                            <th>Return Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var rental in Model)
+                        {
+                            <tr>
+                                <td>@(rental.User?.Email ?? "N/A")</td>
+                                <td>@(rental.Book?.Title ?? "N/A")</td>
+                                <td>@(rental.RentalDate != default ? $"{rental.RentalDate:MM/dd/yyyy}" : "Not Set")</td>
+                                <td>@(rental.ReturnDate != default ? $"{rental.ReturnDate:MM/dd/yyyy}" : "Not Set")</td>
+                                <td>
+                                    @if (rental.IsReturned)
+                                    {
+                                        <span class="badge bg-success">Returned</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-primary">Active</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
 
-            </td>
+            <!-- Pagination -->
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    @{
+                        var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+                        var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+                    }
+                    <li class="page-item @prevDisabled">
+                        <a class="page-link" asp-action="Rentals"
+                           asp-route-pageNumber="@(Model.PageIndex - 1)"
+                           asp-route-currentFilter="@ViewData["CurrentFilter"]"
+                           asp-route-sortOrder="@ViewData["CurrentSort"]"
+                           asp-route-statusFilter="@ViewBag.CurrentStatus">
+                            Previous
+                        </a>
+                    </li>
 
-        </tr>
+                    @for (var i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                            <a class="page-link" asp-action="Rentals"
+                               asp-route-pageNumber="@i"
+                               asp-route-currentFilter="@ViewData["CurrentFilter"]"
+                               asp-route-sortOrder="@ViewData["CurrentSort"]"
+                               asp-route-statusFilter="@ViewBag.CurrentStatus">
+                                @i
+                            </a>
+                        </li>
+                    }
 
-    }
-</tbody>
-</table>
-
+                    <li class="page-item @nextDisabled">
+                        <a class="page-link" asp-action="Rentals"
+                           asp-route-pageNumber="@(Model.PageIndex + 1)"
+                           asp-route-currentFilter="@ViewData["CurrentFilter"]"
+                           asp-route-sortOrder="@ViewData["CurrentSort"]"
+                           asp-route-statusFilter="@ViewBag.CurrentStatus">
+                            Next
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
 </div>

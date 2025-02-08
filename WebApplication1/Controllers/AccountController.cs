@@ -75,16 +75,21 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> Login(LoginDto user)
         {
             if (!ModelState.IsValid)
-            {
                 return View(user);
-            }
 
-            var result = await _signInManager.PasswordSignInAsync(user.Email, user.Password, isPersistent: false, lockoutOnFailure: false);
-
+            var result = await _signInManager.PasswordSignInAsync(user.Email, user.Password, false, false);
             if (result.Succeeded)
             {
+                // Check if user is active
                 var appUser = await _userManager.FindByEmailAsync(user.Email);
-                if (await _userManager.IsInRoleAsync(appUser, "Admin") || await _userManager.IsInRoleAsync(appUser, "LibraryWorker"))
+                if (!appUser.IsActive)
+                {
+                    await _signInManager.SignOutAsync();
+                    ModelState.AddModelError(string.Empty, "This account has been deactivated. Please contact an administrator.");
+                    return View(user);
+                }
+
+                if (User.IsInRole("Admin"))
                 {
                     return RedirectToAction("Dashboard", "Admin");
                 }
@@ -104,17 +109,16 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> Register(RegisterDto userRegister)
         {
             if (!ModelState.IsValid)
-            {
                 return View(userRegister);
-            }
 
             var user = new AppUser
             {
-                UserName = userRegister.Email, // Use email as username for consistency
+                UserName = userRegister.Email,
                 Email = userRegister.Email,
                 FirstName = userRegister.FirstName,
                 LastName = userRegister.LastName,
-                IsVerified = false // Set to false by default
+                IsActive = true,      // User can login
+                IsVerified = false    // But cannot rent books until verified
             };
 
             var result = await _userManager.CreateAsync(user, userRegister.Password);

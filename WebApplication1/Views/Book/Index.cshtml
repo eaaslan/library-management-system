@@ -97,12 +97,14 @@
                             </div>
                             <div class="card-footer bg-transparent border-0">
                                 <div class="d-grid gap-2">
-                                    @if (User.Identity.IsAuthenticated)
+                                    @if (User.Identity.IsAuthenticated && !User.IsInRole("Admin"))
                                     {
                                         @if (book.Available)
                                         {
                                             <a href="#" onclick="return confirmRent(@book.Id)"
-                                               class="btn btn-outline-dark">Rent Book</a>
+                                               class="btn btn-sm btn-dark">
+                                                <i class="bi bi-book"></i> Rent
+                                            </a>
                                         }
                                         else
                                         {
@@ -216,3 +218,34 @@
         box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.15);
     }
 </style>
+
+<!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">Error</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                @if (TempData["Error"] != null)
+                {
+                    <p class="text-danger">@TempData["Error"]</p>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+            errorModal.show();
+        });
+    </script>
+}

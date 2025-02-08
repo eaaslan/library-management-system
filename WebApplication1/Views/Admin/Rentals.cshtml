@@ -55,8 +55,25 @@
                         <tr>
                             <th>User</th>
                             <th>Book Title</th>
-                            <th>Rental Date</th>
-                            <th>Return Date</th>
+                            <th>
+                                <a asp-action="Rentals" asp-route-sortOrder="@(ViewData["CurrentSort"]?.ToString() == "date" ? "" : "date")">
+                                    Rental Date
+                                    @if (string.IsNullOrEmpty(ViewData["CurrentSort"]?.ToString()))
+                                    {
+                                        <i class="bi bi-arrow-down"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a asp-action="Rentals" asp-route-sortOrder="@(ViewData["CurrentSort"]?.ToString() == "return" ? "return_desc" : "return")">
+                                    Return Date
+                                </a>
+                            </th>
+                            <th>
+                                <a asp-action="Rentals" asp-route-sortOrder="@(ViewData["CurrentSort"]?.ToString() == "user" ? "user_desc" : "user")">
+                                    User
+                                </a>
+                            </th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -66,16 +83,21 @@
                             <tr>
                                 <td>@(rental.User?.Email ?? "N/A")</td>
                                 <td>@(rental.Book?.Title ?? "N/A")</td>
-                                <td>@(rental.RentalDate != default ? $"{rental.RentalDate:MM/dd/yyyy}" : "Not Set")</td>
-                                <td>@(rental.ReturnDate != default ? $"{rental.ReturnDate:MM/dd/yyyy}" : "Not Set")</td>
+                                <td>@rental.RentalDate.ToString("dd/MM/yyyy")</td>
+                                <td>@(rental.ReturnDate?.ToString("dd/MM/yyyy") ?? "Not Set")</td>
+                                <td>@(rental.User?.Email ?? "N/A")</td>
                                 <td>
-                                    @if (rental.IsReturned)
+                                    @switch (rental.Status)
                                     {
-                                        <span class="badge bg-success">Returned</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-primary">Active</span>
+                                        case RentalStatus.Active:
+                                            <span class="badge bg-success">Active</span>
+                                            break;
+                                        case RentalStatus.Overdue:
+                                            <span class="badge bg-danger">Overdue</span>
+                                            break;
+                                        case RentalStatus.Returned:
+                                            <span class="badge bg-secondary">Returned</span>
+                                            break;
                                     }
                                 </td>
                             </tr>

@@ -1,4 +1,22 @@
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<AppUser> UserManager
 @model PaginatedList<WebApplication1.Models.AppUser>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 
 <div class="container-fluid p-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -27,11 +45,16 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="form-check align-self-end">
+                <div class="col-md-3 d-flex flex-column justify-content-end gap-2">
+                    <div class="form-check">
                         <input type="checkbox" class="form-check-input" id="includeInactive" 
                                name="includeInactive" value="true" @(ViewBag.IncludeInactive ? "checked" : "")>
                         <label class="form-check-label" for="includeInactive">Include Inactive Users</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="showUnverified" 
+                               name="showUnverified" value="true" @(ViewBag.ShowUnverified ? "checked" : "")>
+                        <label class="form-check-label" for="showUnverified">Show Unverified Users</label>
                     </div>
                 </div>
                 <div class="col-md-2 align-self-end">
@@ -44,7 +67,7 @@
     <!-- Users Table -->
     <div class="card shadow-sm">
         <div class="card-body">
-            <div class="table-responsive">
+            <div class="table-responsive overflow-visible">
                 <table class="table table-hover">
                     <thead>
                         <tr>
@@ -54,7 +77,7 @@
                             <th>Status</th>
                             <th>Phone Number</th>
                             <th>Verification</th>
-                            <th>Actions</th>
+                            <th style="min-width: 100px">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -65,13 +88,20 @@
                                 <td>@user.LastName</td>
                                 <td>@user.Email</td>
                                 <td>
-                                    @if (user.IsActive)
+                                    @if (await UserManager.IsInRoleAsync(user, "Admin"))
                                     {
-                                        <span class="badge bg-success">Active</span>
+                                        <span class="badge bg-dark">Admin</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-dark">Inactive</span>
+                                        @if (!user.IsActive)
+                                        {
+                                            <span class="badge bg-danger">Inactive</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
                                     }
                                 </td>
                                 <td>@user.PhoneNumber</td>
@@ -86,26 +116,41 @@
                                     }
                                 </td>
                                 <td>
-                                    <div class="btn-group">
-                                        @if (!user.IsVerified)
-                                        {
-                                            <form asp-action="VerifyUser" asp-route-id="@user.Id" method="post" style="display: inline;">
-                                                <button type="submit" class="btn btn-sm btn-success" 
-                                                        onclick="return confirm('Are you sure you want to verify this user?')">
-                                                    <i class="bi bi-check-circle"></i> Verify
-                                                </button>
-                                            </form>
-                                        }
-                                        <a asp-controller="Admin" asp-action="UpdateUser" asp-route-id="@user.Id" 
-                                           class="btn btn-sm btn-warning">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                        <a asp-controller="Admin" asp-action="Delete" asp-route-id="@user.Id" 
-                                           class="btn btn-sm btn-danger"
-                                           onclick="return confirm('Are you sure you want to delete this user?');">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
-                                    </div>
+                                    @if (!await UserManager.IsInRoleAsync(user, "Admin"))
+                                    {
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                                    data-bs-toggle="dropdown">
+                                                Actions
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                @if (!user.IsVerified)
+                                                {
+                                                    <li>
+                                                        <form asp-action="VerifyUser" asp-route-id="@user.Id" method="post">
+                                                            <button type="submit" class="dropdown-item text-success">
+                                                                <i class="bi bi-check-circle"></i> Verify User
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                }
+                                                <li>
+                                                    <form asp-action="ToggleUserStatus" asp-route-id="@user.Id" method="post">
+                                                        <button type="submit" class="dropdown-item">
+                                                            @(user.IsActive ? "Deactivate" : "Activate")
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form asp-action="DeleteUser" asp-route-id="@user.Id" 
+                                                          method="post" onsubmit="return confirm('Are you sure?');">
+                                                        <button type="submit" class="dropdown-item text-danger">Delete</button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    }
                                 </td>
                             </tr>
                         }
@@ -125,7 +170,8 @@
                            asp-route-pageNumber="@(Model.PageIndex - 1)"
                            asp-route-currentFilter="@ViewData["CurrentFilter"]"
                            asp-route-sortOrder="@ViewData["CurrentSort"]"
-                           asp-route-includeInactive="@ViewBag.IncludeInactive">
+                           asp-route-includeInactive="@ViewBag.IncludeInactive"
+                           asp-route-showUnverified="@ViewBag.ShowUnverified">
                             Previous
                         </a>
                     </li>
@@ -137,7 +183,8 @@
                                asp-route-pageNumber="@i"
                                asp-route-currentFilter="@ViewData["CurrentFilter"]"
                                asp-route-sortOrder="@ViewData["CurrentSort"]"
-                               asp-route-includeInactive="@ViewBag.IncludeInactive">
+                               asp-route-includeInactive="@ViewBag.IncludeInactive"
+                               asp-route-showUnverified="@ViewBag.ShowUnverified">
                                 @i
                             </a>
                         </li>
@@ -148,7 +195,8 @@
                            asp-route-pageNumber="@(Model.PageIndex + 1)"
                            asp-route-currentFilter="@ViewData["CurrentFilter"]"
                            asp-route-sortOrder="@ViewData["CurrentSort"]"
-                           asp-route-includeInactive="@ViewBag.IncludeInactive">
+                           asp-route-includeInactive="@ViewBag.IncludeInactive"
+                           asp-route-showUnverified="@ViewBag.ShowUnverified">
                             Next
                         </a>
                     </li>

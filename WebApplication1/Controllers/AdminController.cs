@@ -51,26 +51,27 @@ namespace WebApplication1.Controllers
 
         public async Task<IActionResult> Rentals(
             string sortOrder,
+            string currentFilter,
             string searchString,
             string statusFilter,
             int pageNumber = 1)
         {
-            var pageSize = 10; // You can adjust this number
+            var pageSize = 10;
             ViewData["CurrentFilter"] = searchString;
             ViewData["CurrentSort"] = sortOrder;
             ViewBag.CurrentStatus = statusFilter;
 
             var rentals = _context.Rentals
-                .Include(x => x.User)
-                .Include(x => x.Book)
+                .Include(r => r.Book)
+                .Include(r => r.User)
                 .AsQueryable();
 
             // Apply filters
             if (!string.IsNullOrEmpty(searchString))
             {
                 rentals = rentals.Where(r => 
-                    r.User.Email.Contains(searchString) ||
-                    r.Book.Title.Contains(searchString));
+                    r.Book.Title.Contains(searchString) ||
+                    r.User.Email.Contains(searchString));
             }
 
             if (!string.IsNullOrEmpty(statusFilter))
@@ -86,21 +87,15 @@ namespace WebApplication1.Controllers
             }
 
             // Apply sorting
-            switch (sortOrder)
+            rentals = sortOrder switch
             {
-                case "date_desc":
-                    rentals = rentals.OrderByDescending(r => r.RentalDate);
-                    break;
-                case "return":
-                    rentals = rentals.OrderBy(r => r.ReturnDate);
-                    break;
-                case "user":
-                    rentals = rentals.OrderBy(r => r.User.Email);
-                    break;
-                default: // date ascending
-                    rentals = rentals.OrderBy(r => r.RentalDate);
-                    break;
-            }
+                "date" => rentals.OrderBy(r => r.RentalDate),
+                "return_desc" => rentals.OrderByDescending(r => r.ReturnDate),
+                "return" => rentals.OrderBy(r => r.ReturnDate),
+                "user_desc" => rentals.OrderByDescending(r => r.User.Email),
+                "user" => rentals.OrderBy(r => r.User.Email),
+                _ => rentals.OrderByDescending(r => r.RentalDate)  // Default: latest first
+            };
 
             return View(await PaginatedList<Rental>.CreateAsync(rentals, pageNumber, pageSize));
         }
@@ -120,20 +115,45 @@ namespace WebApplication1.Controllers
 
 
         public async Task<IActionResult> Users(
-            string searchString,
             string sortOrder,
+            string currentFilter,
+            string searchString,
             bool includeInactive = false,
-            int pageNumber = 1)
+            bool showUnverified = false,
+            int? pageNumber = 1)
         {
-            var pageSize = 10; // You can adjust this number
-            ViewData["CurrentFilter"] = searchString;
             ViewData["CurrentSort"] = sortOrder;
+            ViewData["CurrentFilter"] = searchString;
             ViewBag.IncludeInactive = includeInactive;
+            ViewBag.ShowUnverified = showUnverified;
+
+            if (searchString != null)
+            {
+                pageNumber = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
 
             var users = _userManager.Users.AsQueryable();
 
             // Apply filters
-            if (!string.IsNullOrEmpty(searchString))
+            if (!includeInactive)
+            {
+                users = users.Where(u => u.IsActive);
+            }
+
+            if (showUnverified)
+            {
+                users = users.Where(u => !u.IsVerified);
+            }
+            else
+            {
+                users = users.Where(u => u.IsVerified);
+            }
+
+            if (!String.IsNullOrEmpty(searchString))
             {
                 users = users.Where(u => 
                     u.Email.Contains(searchString) ||
@@ -141,29 +161,17 @@ namespace WebApplication1.Controllers
                     u.LastName.Contains(searchString));
             }
 
-            if (!includeInactive)
-            {
-                users = users.Where(u => u.IsActive);
-            }
-
             // Apply sorting
-            switch (sortOrder)
+            users = sortOrder switch
             {
-                case "name_desc":
-                    users = users.OrderByDescending(u => u.FirstName);
-                    break;
-                case "email":
-                    users = users.OrderBy(u => u.Email);
-                    break;
-                case "email_desc":
-                    users = users.OrderByDescending(u => u.Email);
-                    break;
-                default: // name ascending
-                    users = users.OrderBy(u => u.FirstName);
-                    break;
-            }
+                "name_desc" => users.OrderByDescending(s => s.FirstName),
+                "email" => users.OrderBy(s => s.Email),
+                "email_desc" => users.OrderByDescending(s => s.Email),
+                _ => users.OrderBy(s => s.FirstName),
+            };
 
-            return View(await PaginatedList<AppUser>.CreateAsync(users, pageNumber, pageSize));
+            int pageSize = 10;
+            return View(await PaginatedList<AppUser>.CreateAsync(users, pageNumber ?? 1, pageSize));
         }
 
 
@@ -269,6 +277,13 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
+            // Don't verify admin users (they're already verified)
+            if (await _userManager.IsInRoleAsync(user, "Admin"))
+            {
+                TempData["Error"] = "Admin users are already verified.";
+                return RedirectToAction(nameof(Users));
+            }
+
             user.IsVerified = true;
             await _userManager.UpdateAsync(user);
 
@@ -281,6 +296,7 @@ namespace WebApplication1.Controllers
                 await _context.SaveChangesAsync();
             }
 
+            TempData["Success"] = $"User {user.Email} has been verified successfully.";
             return RedirectToAction(nameof(Users));
         }
 
@@ -294,6 +310,54 @@ namespace WebApplication1.Controllers
                 await _context.SaveChangesAsync();
             }
             return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteUser(string id)
+        {
+            // Check if trying to delete an admin
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            if (await _userManager.IsInRoleAsync(user, "Admin"))
+            {
+                TempData["Error"] = "Admin users cannot be deleted.";
+                return RedirectToAction(nameof(Users));
+            }
+
+            // Proceed with deletion
+            var result = await _userManager.DeleteAsync(user);
+            if (!result.Succeeded)
+            {
+                TempData["Error"] = "Error deleting user.";
+            }
+
+            return RedirectToAction(nameof(Users));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ToggleUserStatus(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            // Prevent deactivating admin
+            if (await _userManager.IsInRoleAsync(user, "Admin"))
+            {
+                TempData["Error"] = "Admin users cannot be deactivated.";
+                return RedirectToAction(nameof(Users));
+            }
+
+            user.IsActive = !user.IsActive;
+            await _userManager.UpdateAsync(user);
+
+            return RedirectToAction(nameof(Users));
         }
 
     }

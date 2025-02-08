@@ -25,20 +25,22 @@
                     <td>@rental.Book.Title</td>
                     <td>@rental.Book.Category.Name</td>
                     <td>@rental.ISBN</td>
-                    <td>@rental.RentalDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                    <td>@(rental.ReturnDate?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                    <td>@rental.RentalDate.ToString("dd/MM/yyyy")</td>
+                    <td>@(rental.ReturnDate?.ToString("dd/MM/yyyy") ?? "N/A")</td>
                     <td>
-                        @if (rental.IsReturned)
+                        @switch (rental.Status)
                         {
-                            <span class="badge bg-success">Returned</span>
-                        }
-                        else if (rental.ReturnDate < DateTime.UtcNow)
-                        {
-                            <span class="badge bg-danger">Overdue</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-primary">Active</span>
+                            case RentalStatus.Active:
+                                <span class="badge bg-success">Active</span>
+                                <small class="text-muted ms-2">Due: @rental.DueDate.ToString("dd/MM/yyyy")</small>
+                                break;
+                            case RentalStatus.Overdue:
+                                <span class="badge bg-danger">Overdue</span>
+                                <small class="text-danger ms-2">Was due: @rental.DueDate.ToString("dd/MM/yyyy")</small>
+                                break;
+                            case RentalStatus.Returned:
+                                <span class="badge bg-secondary">Returned</span>
+                                break;
                         }
                     </td>
                 </tr>

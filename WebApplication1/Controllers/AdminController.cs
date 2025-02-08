@@ -100,7 +100,7 @@ namespace WebApplication1.Controllers
             return View(await PaginatedList<Rental>.CreateAsync(rentals, pageNumber, pageSize));
         }
 
-        public async Task<ActionResult> ActiveRentals()
+        public async Task<IActionResult> ActiveRentals()
         {
 
             var rentals = await _context.Rentals
@@ -136,29 +136,36 @@ namespace WebApplication1.Controllers
                 searchString = currentFilter;
             }
 
-            var users = _userManager.Users.AsQueryable();
+            // Get all non-admin users
+            var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+            var adminUserIds = await _context.UserRoles
+                .Where(ur => ur.RoleId == adminRole.Id)
+                .Select(ur => ur.UserId)
+                .ToListAsync();
+
+            var users = _userManager.Users
+                .Where(u => !adminUserIds.Contains(u.Id))
+                .AsQueryable();
 
             // Apply filters
-            if (!includeInactive)
-            {
-                users = users.Where(u => u.IsActive);
-            }
-
-            if (showUnverified)
-            {
-                users = users.Where(u => !u.IsVerified);
-            }
-            else
-            {
-                users = users.Where(u => u.IsVerified);
-            }
-
-            if (!String.IsNullOrEmpty(searchString))
+            if (!string.IsNullOrEmpty(searchString))
             {
                 users = users.Where(u => 
                     u.Email.Contains(searchString) ||
                     u.FirstName.Contains(searchString) ||
                     u.LastName.Contains(searchString));
+            }
+
+            // Apply active/inactive filter if specified
+            if (!includeInactive)
+            {
+                users = users.Where(u => u.IsActive);
+            }
+
+            // Apply verified/unverified filter if specified
+            if (showUnverified)
+            {
+                users = users.Where(u => !u.IsVerified);
             }
 
             // Apply sorting
@@ -167,7 +174,7 @@ namespace WebApplication1.Controllers
                 "name_desc" => users.OrderByDescending(s => s.FirstName),
                 "email" => users.OrderBy(s => s.Email),
                 "email_desc" => users.OrderByDescending(s => s.Email),
-                _ => users.OrderBy(s => s.FirstName),
+                _ => users.OrderByDescending(s => s.CreatedAt),  // Default: latest registered first
             };
 
             int pageSize = 10;

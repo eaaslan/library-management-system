@@ -118,7 +118,8 @@ namespace WebApplication1.Controllers
                 FirstName = userRegister.FirstName,
                 LastName = userRegister.LastName,
                 IsActive = true,      // User can login
-                IsVerified = false    // But cannot rent books until verified
+                IsVerified = false,   // But cannot rent books until verified
+                CreatedAt = DateTime.UtcNow
             };
 
             var result = await _userManager.CreateAsync(user, userRegister.Password);

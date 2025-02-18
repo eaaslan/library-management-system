@@ -1,1 +1,1 @@
-web: cd $HOME/heroku_output && dotnet WebApplication1.dll 
+web: dotnet WebApplication1.dll --urls=http://+:$PORT 

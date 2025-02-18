@@ -1,1 +1,1 @@
-web: dotnet WebApplication1.dll --urls=http://+:$PORT 
+web: /app/dotnet/dotnet WebApplication1.dll --urls=http://+:$PORT 

@@ -9,22 +9,107 @@ namespace WebApplication1.Data
         public static async Task Initialize(IServiceProvider serviceProvider)
         {
             var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<AppRole>>();
+            var userManager = serviceProvider.GetRequiredService<UserManager<AppUser>>();
+
+            // Create roles if they don't exist
+            string[] roleNames = { "Admin", "LibraryStaff", "User" };
+            foreach (var roleName in roleNames)
+            {
+                if (!await roleManager.RoleExistsAsync(roleName))
+                {
+                    await roleManager.CreateAsync(new AppRole { Name = roleName });
+                }
+            }
+
+            // Create admin user
+            var adminEmail = "admin@example.com";
+            var admin = await userManager.FindByEmailAsync(adminEmail);
+            if (admin == null)
+            {
+                admin = new AppUser
+                {
+                    UserName = adminEmail,
+                    Email = adminEmail,
+                    FirstName = "Admin",
+                    LastName = "User",
+                    EmailConfirmed = true,
+                    IsActive = true,
+                    IsVerified = true
+                };
+                var result = await userManager.CreateAsync(admin, "Admin123!");
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(admin, "Admin");
+                }
+            }
+
+            // Create 3 library staff users
+            for (int i = 1; i <= 3; i++)
+            {
+                var staffEmail = $"staff{i}@example.com";
+                var staff = await userManager.FindByEmailAsync(staffEmail);
+                if (staff == null)
+                {
+                    staff = new AppUser
+                    {
+                        UserName = staffEmail,
+                        Email = staffEmail,
+                        FirstName = $"Staff{i}",
+                        LastName = "User",
+                        EmailConfirmed = true,
+                        IsActive = true,
+                        IsVerified = true
+                    };
+                    var result = await userManager.CreateAsync(staff, "Staff123!");
+                    if (result.Succeeded)
+                    {
+                        await userManager.AddToRoleAsync(staff, "LibraryStaff");
+                    }
+                }
+            }
+
+            // Create 10 regular users (5 active and verified)
+            for (int i = 1; i <= 10; i++)
+            {
+                var userEmail = $"user{i}@example.com";
+                var user = await userManager.FindByEmailAsync(userEmail);
+                if (user == null)
+                {
+                    user = new AppUser
+                    {
+                        UserName = userEmail,
+                        Email = userEmail,
+                        FirstName = $"User{i}",
+                        LastName = "Test",
+                        EmailConfirmed = true,
+                        IsActive = i <= 5, // First 5 users are active
+                        IsVerified = i <= 5 // First 5 users are verified
+                    };
+                    var result = await userManager.CreateAsync(user, "User123!");
+                    if (result.Succeeded)
+                    {
+                        await userManager.AddToRoleAsync(user, "User");
+                    }
+                }
+            }
 
             // Create sample rental records if none exist
-            if (!context.Rentals.Any())
+            if (!context.Rentals.Any() && context.Books.Any())
             {
                 var books = await context.Books.ToListAsync();
-                var users = await context.Users.Where(u => u.IsActive).ToListAsync();
+                var activeUsers = await userManager.GetUsersInRoleAsync("User");
+                activeUsers = activeUsers.Where(u => u.IsActive && u.IsVerified).ToList();
 
-                if (books.Any() && users.Any())
+                if (books.Any() && activeUsers.Any())
                 {
                     var random = new Random();
 
-                    // Create 20 returned rentals (normal returns)
-                    for (int i = 0; i < 20; i++)
+                    // Create 10 returned rentals
+                    for (int i = 0; i < 10; i++)
                     {
                         var book = books[random.Next(books.Count)];
-                        var user = users[random.Next(users.Count)];
+                        var user = activeUsers[random.Next(activeUsers.Count)];
                         var rental = new Rental
                         {
                             BookId = book.Id,
@@ -33,40 +118,17 @@ namespace WebApplication1.Data
                             IsReturned = true
                         };
                         
-                        // Set rental date between 15-60 days ago
-                        rental.SetRentalDate(DateTime.UtcNow.AddDays(-random.Next(15, 60)));
-                        // Set return date before due date
+                        rental.SetRentalDate(DateTime.UtcNow.AddDays(-random.Next(15, 30)));
                         rental.SetReturnDate(rental.RentalDate.AddDays(random.Next(1, 13)));
                         
                         context.Rentals.Add(rental);
                     }
 
-                    // Create 2 returned overdue rentals
-                    for (int i = 0; i < 2; i++)
-                    {
-                        var book = books[random.Next(books.Count)];
-                        var user = users[random.Next(users.Count)];
-                        var rental = new Rental
-                        {
-                            BookId = book.Id,
-                            ISBN = book.ISBN,
-                            UserId = user.Id,
-                            IsReturned = true
-                        };
-                        
-                        // Set rental date 30-45 days ago
-                        rental.SetRentalDate(DateTime.UtcNow.AddDays(-random.Next(30, 45)));
-                        // Set return date after due date (overdue)
-                        rental.SetReturnDate(rental.DueDate.AddDays(random.Next(1, 10)));
-                        
-                        context.Rentals.Add(rental);
-                    }
-
-                    // Create 3 active overdue rentals (not returned)
+                    // Create 3 active rentals
                     for (int i = 0; i < 3; i++)
                     {
                         var book = books[random.Next(books.Count)];
-                        var user = users[random.Next(users.Count)];
+                        var user = activeUsers[random.Next(activeUsers.Count)];
                         var rental = new Rental
                         {
                             BookId = book.Id,
@@ -75,27 +137,6 @@ namespace WebApplication1.Data
                             IsReturned = false
                         };
                         
-                        // Set rental date 20-30 days ago (will be overdue)
-                        rental.SetRentalDate(DateTime.UtcNow.AddDays(-random.Next(20, 30)));
-                        
-                        book.Available = false;
-                        context.Rentals.Add(rental);
-                    }
-
-                    // Create 5 active rentals (not overdue)
-                    for (int i = 0; i < 5; i++)
-                    {
-                        var book = books[random.Next(books.Count)];
-                        var user = users[random.Next(users.Count)];
-                        var rental = new Rental
-                        {
-                            BookId = book.Id,
-                            ISBN = book.ISBN,
-                            UserId = user.Id,
-                            IsReturned = false
-                        };
-                        
-                        // Set rental date 1-10 days ago (will not be overdue)
                         rental.SetRentalDate(DateTime.UtcNow.AddDays(-random.Next(1, 10)));
                         
                         book.Available = false;
@@ -105,19 +146,6 @@ namespace WebApplication1.Data
                     await context.SaveChangesAsync();
                 }
             }
-
-            // Update admin user handling
-            var adminEmail = "admin@example.com";
-            var admin = new AppUser
-            {
-                UserName = adminEmail,
-                Email = adminEmail,
-                FirstName = "Admin",
-                LastName = "User",
-                EmailConfirmed = true,
-                IsActive = true,
-                IsVerified = true  // Ensure admin is verified
-            };
         }
     }
 } 

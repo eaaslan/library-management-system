@@ -214,6 +214,9 @@ csx/
 ecf/
 rcf/
 
+bin/
+obj/
+heroku_output/
 # Windows Store app package directories and files
 AppPackages/
 BundleArtifacts/

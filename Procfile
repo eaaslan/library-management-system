@@ -1,1 +1,1 @@
-web: dotnet WebApplication1.dll 
+web: cd $HOME/heroku_output && dotnet WebApplication1.dll 

@@ -79,6 +79,9 @@
 
   <ItemGroup>
     <None Include="wwwroot\vecteezy_book-read-library-study-line-icon-vector-illustration_4852937-1.jpg" />
+    <None Update="Data\CSV\*.csv">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

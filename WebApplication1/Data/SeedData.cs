@@ -1,3 +1,5 @@
+using CsvHelper;
+using System.Globalization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
@@ -6,13 +8,46 @@ namespace WebApplication1.Data
 {
     public static class SeedData
     {
+        private static async Task ImportCategoriesFromCsv(ApplicationDbContext context)
+        {
+            if (!context.Categories.Any())
+            {
+                using var reader = new StreamReader("Data/CSV/categories.csv");
+                using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+                var categories = csv.GetRecords<Category>().ToList();
+                await context.Categories.AddRangeAsync(categories);
+                await context.SaveChangesAsync();
+            }
+        }
+
+        private static async Task ImportBooksFromCsv(ApplicationDbContext context)
+        {
+            if (!context.Books.Any())
+            {
+                using var reader = new StreamReader("Data/CSV/books.csv");
+                using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+                var books = csv.GetRecords<Book>().ToList();
+                await context.Books.AddRangeAsync(books);
+                await context.SaveChangesAsync();
+            }
+        }
+
         public static async Task Initialize(IServiceProvider serviceProvider)
         {
             var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
             var roleManager = serviceProvider.GetRequiredService<RoleManager<AppRole>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<AppUser>>();
 
-            // Create roles if they don't exist
+            // Ensure database is created and migrated
+            await context.Database.MigrateAsync();
+
+            // 1. Import Categories first
+            await ImportCategoriesFromCsv(context);
+
+            // 2. Import Books second (since they might depend on categories)
+            await ImportBooksFromCsv(context);
+
+            // 3. Create roles if they don't exist
             string[] roleNames = { "Admin", "LibraryStaff", "User" };
             foreach (var roleName in roleNames)
             {
@@ -22,7 +57,7 @@ namespace WebApplication1.Data
                 }
             }
 
-            // Create admin user
+            // 4. Create admin user
             var adminEmail = "admin@example.com";
             var admin = await userManager.FindByEmailAsync(adminEmail);
             if (admin == null)

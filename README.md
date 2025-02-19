@@ -139,25 +139,30 @@ WebApplication1/
 ## Screenshots
 
 ### 📚 Admin Book Management
-![Admin Book View](https://github.com/user-attachments/assets/458be9c3-be4f-4776-a9e1-dfa60ef98881)
+![admin_books_1](https://github.com/user-attachments/assets/98439be7-4a4a-45c3-a4ef-b7b23f0a20cb)
+![admin_book_update](https://github.com/user-attachments/assets/685392d8-63a1-41f9-8ef8-46ef2c577194)
 
 ### 👥 Admin User Management
-![Admin User Management View](https://github.com/user-attachments/assets/4099c4cb-5d40-4d59-9924-0154150d0f11)
+![admin_users](https://github.com/user-attachments/assets/8c77779f-30bb-4853-b2b1-92bfad9a582d)
 
 ### 📋 Admin Rental History
-![Admin Rental History View](https://github.com/user-attachments/assets/5ee3ac24-9bb7-4779-b8d0-e3b73ed743fb)
+![admin_rentals](https://github.com/user-attachments/assets/5357780f-441b-4b54-8e77-3795a6956312)
 
 ### 📊 Admin Dashboard
-![Admin Dashboard View](https://github.com/user-attachments/assets/e93df45b-fc08-49dd-bce4-ec1f7835637b)
+![admin_dashboard_1](https://github.com/user-attachments/assets/b6361e04-9900-4555-ac08-ef4f2dfe041d)
+![admin_dashboard_2_notification_rental](https://github.com/user-attachments/assets/724c3280-5474-4b00-beec-08860ffd2a06)
 
 ### 🔒 Public View
-![Unauthenticated User View](https://github.com/user-attachments/assets/96cd8f38-1ff1-40ee-aaf5-2d9bdd15a496)
+![unauth_book](https://github.com/user-attachments/assets/d5962dc2-4b24-4eba-845c-0ffe22b25374)
+![login](https://github.com/user-attachments/assets/e320e946-9f71-4569-948b-cda3af756d7a)
+![register](https://github.com/user-attachments/assets/fdf4effc-82a7-4a48-a268-7772205fbd2d)
 
 ### 📖 User Book View
-![User Book View](https://github.com/user-attachments/assets/f9b39a77-34fb-456e-ad9f-a8e9f60d2943)
+![user_bookview_1](https://github.com/user-attachments/assets/757735cb-8168-46c2-ba21-9ed40d29e743)
+![user_book_view_2](https://github.com/user-attachments/assets/35707d28-1606-4d7b-ab69-93d5337e7a6c)
 
 ### 📅 User Rental History
-![User Rental History View](https://github.com/user-attachments/assets/3946e162-ca3d-43f9-bb7a-d371ed46f6cd)
+![user_rental_view](https://github.com/user-attachments/assets/fd0e3b67-6bb0-4090-b16c-3cf5a46816df)
 
 ## Contributing
 1. Fork the repository

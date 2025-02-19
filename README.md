@@ -5,9 +5,19 @@ A robust ASP.NET Core MVC application for managing library resources, books, and
 ## Features
 
 ### User Management
+- **Role-Based Authorization**: 
+  - Admin: Full system access
+  - Library Staff: Book and rental management
+  - Users: Book browsing and rental
 - **User Authentication**: Secure login and registration system
-- **Role-Based Authorization**: Different access levels for Admin and User roles
+- **User Verification System**: Active/Inactive status management
 - **User Profile**: Users can view their rental history and current rentals
+- **Notifications**: 
+  - Admin receives notifications for:
+    - New user registrations
+    - Book return deadlines
+    - Overdue rentals
+    - Low book stock alerts
 
 ### Book Management
 - **Book Catalog**: Complete listing of all available books
@@ -19,22 +29,27 @@ A robust ASP.NET Core MVC application for managing library resources, books, and
   - Description
   - Category
   - Availability status
+  - Publication year
   - Image URL
+- **Pagination**: 
+  - Efficient browsing of large book collections
+  - Configurable items per page
+  - Sort and filter capabilities
 
-### Admin Features
-- **Book Management**:
-  - Add new books
-  - Update existing books
-  - Delete books (soft delete)
-  - Manage book categories
-- **Category Management**: Organize books by categories
-
-### User Features
+### Rental System
 - **Book Rental**: Users can rent available books
-- **Rental History**: Track rental dates and return status
-- **Book Search**: Easy-to-use search and filter functionality
+- **Return Tracking**: Monitor return dates and status
+- **Rental History**: Complete rental transaction history
+- **Active Rental Monitoring**: Track currently rented books
 
-## Technical Details
+
+## Technical Setup
+
+### Prerequisites
+- .NET SDK 8.0.405
+- Docker
+- Docker Compose
+- PostgreSQL (via Docker)
 
 ### Built With
 - ASP.NET Core MVC (.NET 8.0)
@@ -43,33 +58,83 @@ A robust ASP.NET Core MVC application for managing library resources, books, and
 - Identity Framework for Authentication
 - Bootstrap 5 for UI
 
-### Database Schema
-- **Books**: Stores book information (ISBN, Title, Author, etc.)
-- **Categories**: Manages book categories
-- **Rentals**: Tracks book rentals
-- **Users**: Manages user information
-- **Roles**: Handles role-based authorization
+### Database Configuration
+Development database runs on Docker with these credentials:
+- Host: localhost
+- Port: 5433
+- Database: postgres
+- Username: postgres
+- Password: mysecretpassword
 
-### Key Features Implementation
-1. **Entity Framework Core**:
-   - Code-first approach
-   - Migration management
-   - Relationship handling
+### Initial Data
+The system comes pre-seeded with:
+- Categories (imported from CSV)
+- Books (imported from CSV)
+- Default users:
+  - Admin (admin@example.com / Admin123!)
+  - 3 Library Staff members (staff1@example.com through staff3@example.com / Staff123!)
+  - 10 Regular users (user1@example.com through user10@example.com / User123!)
+    - First 5 users are active and verified
+- Sample rental history
 
-2. **Repository Pattern**:
-   - IBookService interface
-   - Separation of concerns
-   - Clean architecture principles
+## Getting Started
 
-3. **Authentication & Authorization**:
-   - ASP.NET Core Identity
-   - Role-based access control
-   - Secure user management
+1. Clone the repository
+   ```bash
+   git clone https://github.com/eaaslan/library-management-system.git
+   ```
 
-4. **Data Validation**:
-   - Model validation
-   - Client-side validation
-   - Server-side validation
+2. Start the PostgreSQL container
+   ```bash
+   docker-compose up -d
+   ```
+
+3. Run the application
+   ```bash
+   dotnet run
+   ```
+
+The application will automatically:
+1. Create and migrate the database
+2. Import categories from CSV
+3. Import books from CSV
+4. Create default users and roles
+5. Generate sample rental data
+
+## Project Structure
+```
+WebApplication1/
+├── Data/
+│   ├── CSV/
+│   │   ├── categories.csv
+│   │   └── books.csv
+│   └── SeedData.cs
+├── Models/
+├── Controllers/
+├── docker-compose.yml
+└── appsettings.json
+```
+
+## Development Notes
+- CSV files in Data/CSV/ are automatically imported on first run
+- Database seeding happens in order: Categories → Books → Users → Rentals
+- Development and Production environments use different connection strings
+- Docker container includes health checks for PostgreSQL
+
+## Default Credentials
+
+### Admin
+- Email: admin@example.com
+- Password: Admin123!
+
+### Library Staff
+- Email: staff1@example.com (through staff3@example.com)
+- Password: Staff123!
+
+### Regular Users
+- Email: user1@example.com (through user10@example.com)
+- Password: User123!
+- Note: Only users 1-5 are active and verified
 
 ## Screenshots
 
@@ -93,65 +158,6 @@ A robust ASP.NET Core MVC application for managing library resources, books, and
 
 ### 📅 User Rental History
 ![User Rental History View](https://github.com/user-attachments/assets/3946e162-ca3d-43f9-bb7a-d371ed46f6cd)
-
-## Getting Started
-
-### Prerequisites
-- .NET 8.0 SDK
-- PostgreSQL
-- Visual Studio 2022 or VS Code
-
-### Installation
-1. Clone the repository
-```bash
-git clone https://github.com/eaaslan/library-management-system.git
-```
-
-2. Update the connection string in `appsettings.json`
-```json
-"ConnectionStrings": {
-    "DefaultConnection": "Your-PostgreSQL-Connection-String"
-}
-```
-
-3. Run Entity Framework migrations
-```bash
-dotnet ef database update
-```
-
-4. Run the application
-```bash
-dotnet run
-```
-
-### Initial Setup
-- The system comes with pre-seeded:
-  - Book categories
-  - Admin user
-  - Sample books
-
-## Usage
-
-### Admin Operations
-1. **Managing Books**:
-   - Navigate to Books section
-   - Use Add/Update/Delete functions
-   - Manage book details and availability
-
-2. **Category Management**:
-   - View and manage book categories
-   - Associate books with categories
-
-### User Operations
-1. **Renting Books**:
-   - Browse available books
-   - Use filters to find specific books
-   - Click "Rent" to borrow a book
-
-2. **Viewing Rentals**:
-   - Check rental history
-   - View current rentals
-   - Track return dates
 
 ## Contributing
 1. Fork the repository

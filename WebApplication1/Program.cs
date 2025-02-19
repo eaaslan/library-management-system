@@ -25,9 +25,6 @@ builder.Services
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders(); 
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://+:{port}");
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -62,5 +59,18 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Book}/{action=Index}/{id?}");
+
+// Configure port based on environment
+if (app.Environment.IsDevelopment())
+{
+    // Use port 5000 for local development
+    app.Urls.Add("http://localhost:5000");
+}
+else
+{
+    // Use Heroku's dynamic port for production
+    var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+    app.Urls.Add($"http://+:{port}");
+}
 
 app.Run();
